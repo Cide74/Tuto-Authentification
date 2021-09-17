@@ -1,0 +1,24 @@
+{
+  "name": "tuto-authentification",
+  "version": "1.0.0",
+  "description": "suivi d'un tuto sur JWT",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Cide74/Tuto-Authentification.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Cide74/Tuto-Authentification/issues"
+  },
+  "homepage": "https://github.com/Cide74/Tuto-Authentification#readme",
+  "dependencies": {
+    "dotenv": "^10.0.0",
+    "express": "^4.17.1",
+    "jsonwebtoken": "^8.5.1"
+  }
+}
