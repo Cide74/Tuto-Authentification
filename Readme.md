@@ -100,7 +100,11 @@ console.log(`hello this is my API`);
 console.log(`secret is =>`, process.env.ACCESS_TOKEN_SECRET);
 ```
 
-## 5 Creation d'un utilisateur pour le teste
+## 5 Création d'un utilisateur pour le teste et génération d'un token temporaire
+
+maintenant nous allons créer un utilisateur et une fonction qui vas génére un token avec la clée secrète pour un temps donné (ne pas mettre un temps tros long sinon plus besion de se connecter)
+
+### 5.1 création d'un utilisateur
 
 ```js
 const user = {
@@ -111,19 +115,22 @@ const user = {
 };
 ```
 
-création d'une fonction pour générer un TOKEN pour un user
+### 5.2 création d'une fonction pour générer un TOKEN pour un utilisateur
 
 ```js
 function generateAccessToken(user) {
   return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1800s' });
 }
 ```
-puis génération d'un TOKEN 
+
+### 5.3 Génération d'un TOKEN
 
 ```js
 const accessToken = generateAccessToken(user);
 console.log('accessToken =>', accessToken);
 ```
+
+### 5.1 Rendu final
 
 soit le fichier `app.js` après modification
 
@@ -156,25 +163,171 @@ const accessToken = generateAccessToken(user);
 console.log('accessToken =>', accessToken);
 ```
 
-```js
+le resultat dans le terminal
+
+```shell
+hello this is my API
+secret is => 4242XX424208
+accessToken => eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NDIsIm5hbWUiOiJKZWFuIEJvbiIsImVtYWlsIjoiamVhbmJvbkBnbWFpbC5jb20iLCJhZG1pbiI6dHJ1ZSwiaWF0IjoxNjMxOTk2NDU0LCJleHAiOjE2MzE5OTgyNTR9.kkG3BGsDeUbcX3Qa9db29aOZoYMhgB7jGL0byMUAcb8  
 ```
 
-```js
-```
+## 6 Création des routes avec express
+
+Création du router avec express via les url
+
+### 6.1 appel de express
 
 ```js
+// utilisation de la lib express pour la création de notre router
+const express = require(`express`);
+const app = express();
+// transmision de donnée en JSON
+app.use(express.json());
+// lecture des url pour encoder les donnée
+app.use(express.urlencoded({ extended: true}));
 ```
 
-```js
-```
+notre fichier final `app.js`
 
 ```js
+// Utilisation de la lilbrairie JWT
+const jwt = require(`jsonwebtoken`);
+// chargement du fichier .env
+require(`dotenv`).config();
+
+// utilisation de la lib express pour la création de notre router
+const express = require(`express`);
+const app = express();
+// transmision de donnée en JSON
+app.use(express.json());
+// lecture des url pour encoder les donnée
+app.use(express.urlencoded({ extended: true}));
+
+// nos testes
+console.log(`hello this is my API`);
+console.log(`secret is =>`, process.env.ACCESS_TOKEN_SECRET);
+
+// utilisateur fictive
+const user = {
+    id: 42,
+    name: 'Jean Bon',
+    email: 'jeanbon@gmail.com',
+    admin: true,
+};
+
+// Fonction qui génére un token
+function generateAccessToken(user) {
+  return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1800s' });
+}
+
+// Fonction qui génére un token pour un temps defini de 1800S = 30mn
+const accessToken = generateAccessToken(user);
+// notre réponse
+console.log('accessToken =>', accessToken);
 ```
 
-```js
-```
+### 6.2 Création de nos routes
+
+création de nos route login et test du mdp + deplacement de notre fonction de génération de token
 
 ```js
+app.post('/api/login', (req, res) => {
+
+    // TODO: fetch le user depuis la db basé sur l'email passé en paramètre
+    if (req.body.email !== 'jeanbon@gmail.com') {
+        res.status(401).send('invalid credentials');
+        return ;
+    }
+    // TODO: check que le mot de passe du user est correct
+    if (req.body.password !== 'cuillere') {
+        res.status(401).send('invalid credentials');
+        return ;
+    }
+
+  // déplacement de la fonction dans notre route
+  const accessToken = generateAccessToken(user);
+  res.send({
+        accessToken,
+    });
+
+});
+```
+
+puis on vas lancer notre serveur sur un port spécifique
+
+dans `.env` et `.env.example` on ajoute le PORT
+
+```s
+PORT=3000
+```
+
+puis son utilisation
+
+```js
+app.listen(process.env.PORT, () => console.log(`Server running on port ${process.env.PORT}!`));
+```
+
+Soit le rendu final du fichier `app.js`
+
+```js
+// Utilisation de la lilbrairie JWT
+const jwt = require(`jsonwebtoken`);
+// chargement du fichier .env
+require(`dotenv`).config();
+
+// utilisation de la lib express pour la création de notre router
+const express = require(`express`);
+const app = express();
+// transmision de donnée en JSON
+app.use(express.json());
+// lecture des url pour encoder les donnée
+app.use(express.urlencoded({ extended: true}));
+
+// nos testes
+console.log(`hello this is my API`);
+console.log(`secret is =>`, process.env.ACCESS_TOKEN_SECRET);
+
+// utilisateur fictive
+const user = {
+    id: 42,
+    name: 'Jean Bon',
+    email: 'jeanbon@gmail.com',
+    admin: true,
+};
+
+// Fonction qui génére un token
+function generateAccessToken(user) {
+  return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1800s' });
+}
+
+// Fonction qui génére un token pour un temps defini de 1800S = 30mn
+// const accessToken = generateAccessToken(user);
+// notre réponse
+// console.log('accessToken =>', accessToken);
+
+app.post('/api/login', (req, res) => {
+
+    // TODO: fetch le user depuis la db basé sur l'email passé en paramètre
+    if (req.body.email !== 'jeanbon@gmail.com') {
+        res.status(401).send('invalid credentials');
+        return ;
+    }
+    // TODO: check que le mot de passe du user est correct
+    if (req.body.password !== 'cuillere') {
+        res.status(401).send('invalid credentials');
+        return ;
+    }
+
+  // déplacement de la fonction dans notre route
+  const accessToken = generateAccessToken(user);
+  res.send({
+        accessToken,
+    });
+
+});
+
+app.listen(process.env.PORT, () => console.log(`Server running on port ${process.env.PORT}!`));
+
 ```
 
 ```js
