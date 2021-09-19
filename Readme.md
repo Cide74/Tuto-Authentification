@@ -850,8 +850,20 @@ Teste dans postman on doit recevoir un accessToken + un refreshTokken
 
 ![postman3](img\postman3.png)
 
-```js
+on peut faire ausi avec le test.http aussi
+
+## Utilisation côté client avec Axios
+
+nous pouvons l'utiliser avec Vue Réact et RéactNative
+
+ici utilisation d'un fake pour le test et aider a la comprenssion
+
+installation de la dependence de Axios en dev
+
+```shell
+npm i --save-dev axios
 ```
+création d'un fichier `root/fake-client.js`
 
 ```js
 ```
