@@ -846,6 +846,10 @@ app.get ('/api/me', authenticateToken, (req, res) => {
 app.listen(process.env.PORT, () => console.log(`Server running on port ${process.env.PORT}!`));
 ```
 
+Teste dans postman on doit recevoir un accessToken + un refreshTokken
+
+![postman3](img\postman3.png)
+
 ```js
 ```
 
