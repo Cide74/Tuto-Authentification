@@ -1,0 +1,14 @@
+### //api/login =>ok
+POST http://localhost:3000/api/login
+Content-Type: application/json
+
+{
+    "email": "jeanbon@gmail.com",
+    "password": "cuillere"
+}
+
+
+### /api/me => ok
+GET http://localhost:3000/api/me
+Content-Type: application/json
+Authorization:barer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NDIsIm5hbWUiOiJKZWFuIEJvbiIsImVtYWlsIjoiamVhbmJvbkBnbWFpbC5jb20iLCJhZG1pbiI6dHJ1ZSwiaWF0IjoxNjMyMDQ2NjQ1LCJleHAiOjE2MzIwNDg0NDV9.JYMLHS9rN5Whn_yODPTr4M0q4SYQFMuMcyypjHXWlXM

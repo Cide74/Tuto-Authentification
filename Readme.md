@@ -330,43 +330,197 @@ app.listen(process.env.PORT, () => console.log(`Server running on port ${process
 
 ```
 
-```js
+## 6.3 Teste de nos routes 
+
+### avec "Thunder Client"
+
+```http
+POST localhost:3000/api/login
 ```
 
-```js
+et dans body
+
+```json
+{
+    "email": "jeanbon@gmail.com",
+    "password": "cuillere"
+}
+```
+la réponse en JSON 
+
+```json
+{
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NDIsIm5hbWUiOiJKZWFuIEJvbiIsImVtYWlsIjoiamVhbmJvbkBnbWFpbC5jb20iLCJhZG1pbiI6dHJ1ZSwiaWF0IjoxNjMxOTk5MjQ4LCJleHAiOjE2MzIwMDEwNDh9.uVp84Pz8yfEG44go2YJoMzf463ISKUehKwZXH4MrX4Y"
+}
 ```
 
-```js
+et voila on à notre JWT
+
+```json
+{
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NDIsIm5hbWUiOiJKZWFuIEJvbiIsImVtYWlsIjoiamVhbmJvbkBnbWFpbC5jb20iLCJhZG1pbiI6dHJ1ZSwiaWF0IjoxNjMxOTk5MjQ4LCJleHAiOjE2MzIwMDEwNDh9.uVp84Pz8yfEG44go2YJoMzf463ISKUehKwZXH4MrX4Y"
+}
 ```
 
-```js
+### avec REST client
+
+création d'un fichier test.http a la racine de notre app soit `root/test.http`
+
+```http
+
+### //api/login =>ok
+POST http://localhost:3000/api/login
+Content-Type: application/json
+
+{
+    "email": "jeanbon@gmail.com",
+    "password": "cuillere"
+}
 ```
 
-```js
+voici la réponce attendu en JSON avec le status 200
+
+```json
+HTTP/1.1 200 OK
+X-Powered-By: Express
+Content-Type: application/json; charset=utf-8
+Content-Length: 235
+ETag: W/"eb-BT5emBsL0ptJlqp1ZzdfxD3/XAE"
+Date: Sat, 18 Sep 2021 21:12:56 GMT
+Connection: close
+
+{
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NDIsIm5hbWUiOiJKZWFuIEJvbiIsImVtYWlsIjoiamVhbmJvbkBnbWFpbC5jb20iLCJhZG1pbiI6dHJ1ZSwiaWF0IjoxNjMxOTk5NTc2LCJleHAiOjE2MzIwMDEzNzZ9.1c3NLe3h42nwbGqGJlByh-NiVKXKjVYbJSByCfATlMY"
+}
 ```
 
-```js
-```
+Si pas de corespondance il y a  une erreur 401
+
+## Authorization & Authentification d'appels API
+
+création de route authentifier
+création d'un middelware
 
 ```js
+
+// notre middleware d'authetification de token
+function authenticateToken (req, res, next) {
+  const authHeader = req.headers[`authorisation`];
+  const token = authHeader && authHeader.split(' ') [1]; // 'Bearer leToken'
+
+  // si pas de token donc status 401 (non autoriser)
+  if (!token) {
+    return res.sendStatus(401);
+  }
+
+  // si token le verifier avec celui de l'utilisateur
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user)=> {
+
+    // si le token est différent donc status 401 (non autoriser)
+    if (err) {
+      return res.sendStatus(401);
+    }
+
+    // si les tokens son identique et on recupere les infos de l'utilisateur pour chacune de nos routes
+    req.user = user;
+    next();
+  });
+
+};
 ```
 
-```js
-```
+création de la route
 
 ```js
+// création de la route et on lui passe le middleware
+app.get ('/api/me', authenticateToken,(req,res) => {
+  // puis on retourne le user
+  res.send(req.user)
+});
 ```
 
-```js
-```
+teste de notre middleware
+dans thunder client
 
 ```js
+
 ```
 
-```js
+### Test avec PostMan
+
+Avec Postman 
+
+**envoi des données**
+
+![postman1](img\postman1.png)
+
+nous avons la route puis les data dans le body et nous avon la reponse (le token valide)
+
+**Retour des données**
+
+![postman2](img\postman2.png)
+
+on copie le token et on le colle dans le volet Auth et types Bearer Token et on a la bonne réponse avec une date de création et une fin
+### Test avec Client REST
+
+dans le fichier test.http
+
+```s
+### //api/login =>ok
+POST http://localhost:3000/api/login
+Content-Type: application/json
+
+{
+    "email": "jeanbon@gmail.com",
+    "password": "cuillere"
+}
 ```
 
+sa réponse
+
+```s
+HTTP/1.1 200 OK
+X-Powered-By: Express
+Content-Type: application/json; charset=utf-8
+Content-Length: 235
+ETag: W/"eb-5whwZrhBaycOKM1TEGd5J/V3aXY"
+Date: Sun, 19 Sep 2021 10:17:25 GMT
+Connection: close
+
+{
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NDIsIm5hbWUiOiJKZWFuIEJvbiIsImVtYWlsIjoiamVhbmJvbkBnbWFpbC5jb20iLCJhZG1pbiI6dHJ1ZSwiaWF0IjoxNjMyMDQ2NjQ1LCJleHAiOjE2MzIwNDg0NDV9.JYMLHS9rN5Whn_yODPTr4M0q4SYQFMuMcyypjHXWlXM"
+}
+```
+
+on copie le token dans le GET
+
 ```js
+### /api/me => ok
+GET http://localhost:3000/api/me
+Content-Type: application/json
+Authorization:barer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NDIsIm5hbWUiOiJKZWFuIEJvbiIsImVtYWlsIjoiamVhbmJvbkBnbWFpbC5jb20iLCJhZG1pbiI6dHJ1ZSwiaWF0IjoxNjMyMDQ2NjQ1LCJleHAiOjE2MzIwNDg0NDV9.JYMLHS9rN5Whn_yODPTr4M0q4SYQFMuMcyypjHXWlXM
+
+```
+
+La reponse
+
+```js
+HTTP/1.1 200 OK
+X-Powered-By: Express
+Content-Type: application/json; charset=utf-8
+Content-Length: 102
+ETag: W/"66-xuaDpmX11Xh7cVTOdrlv743YwSQ"
+Date: Sun, 19 Sep 2021 10:23:08 GMT
+Connection: close
+
+{
+  "id": 42,
+  "name": "Jean Bon",
+  "email": "jeanbon@gmail.com",
+  "admin": true,
+  "iat": 1632046645,
+  "exp": 1632048445
+}
 ```
 
 ```js
