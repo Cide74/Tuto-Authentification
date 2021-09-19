@@ -108,7 +108,7 @@ function authenticateToken (req, res, next) {
 
     // si le token est différent donc status 401 (non autoriser)
     if (err) {
-      console.log("user token diferent => ", user);
+      console.log("user token different => ", user);
       return res.sendStatus(401);
     }
 
