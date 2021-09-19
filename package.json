@@ -6,7 +6,8 @@
   "scripts": {
     "server": "node app.js",
     "start": "nodemon app.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test":"node fake-client.js",
+    "test2": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",

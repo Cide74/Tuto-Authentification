@@ -865,31 +865,130 @@ npm i --save-dev axios
 ```
 création d'un fichier `root/fake-client.js`
 
-```js
-```
+pour un test 
 
 ```js
+console.log(`hello i am a fake`);
 ```
 
-```js
+puis dans package.json on intègre un script test d'ex
+
+```json
+  "scripts": {
+    "server": "node app.js",
+    "start": "nodemon app.js",
+    "test":"node fake-client.js",
+    "test2": "echo \"Error: no test specified\" && exit 1"
+  },
 ```
 
-```js
+pour lancer le test `npm test`
+
+```shell
+[nodemon] 2.0.12
+[nodemon] to restart at any time, enter `rs`
+[nodemon] watching path(s): *.*
+[nodemon] watching extensions: js,mjs,json
+[nodemon] starting `node fake-client.js`
+hello i am a fake
+[nodemon] clean exit - waiting for changes before restart
 ```
 
-```js
-```
+le test fonctionne
+
+### intégration de Axios
+
+dans le fichier fake-client.js
 
 ```js
+// console.log(`hello i am a fake`);
+
+const axios = require('axios');
+
+const instance = axios.create({
+  baseURL: 'http://localhost:3000/api/',
+});
+
+console.log('trying to login');
+
+instance.post('/login', {
+  email: 'jeanbon@gmail.com',
+  password: 'cuillere',
+}).then((res) => {
+  console.log('auth success');
+}).catch((err) => {
+  console.log(err.res.status);
+});
+```
+on ouvre 2 terminal dans le 1er
+
+```shell
+npm start
 ```
 
-```js
+dans le 2 eme
+
+```pwsh
+npm test
 ```
 
-```js
+apres le lancement de npm test on doit avoir dans le terminal 1 la génération des tokens
+
+```shell
+accessToken user => eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NDIsIm5hbWUiOiJKZWFuIEJvbiIsImVtYWlsIjoiamVhbmJvbkBnbWFpbC5jb20iLCJhZG1pbiI6dHJ1ZSwiaWF0IjoxNjMyMDU0MzA5LCJleHAiOjE2MzIwNTYxMDl9.jb9zDc978qL6Ju9kJN3uuHvtaAQy7CRq2CBxr1KVXWI
+refreshToken user => eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NDIsIm5hbWUiOiJKZWFuIEJvbiIsImVtYWlsIjoiamVhbmJvbkBnbWFpbC5jb20iLCJhZG1pbiI6dHJ1ZSwiaWF0IjoxNjMyMDU0MzA5LCJleHAiOjE2NjM2MTE5MDl9.e2u4a6OpPRdYhhsZ_rAwpn5_BGokSoOpJ-RMuwkBlck
 ```
 
+et dans le terminal 2 autentification avec succes
+
+```shell
+trying to login
+auth success
+```
+
+rendu de fichier fake-client.js
+
 ```js
+// ici on simule le front
+
+const axios = require('axios');
+
+// Base des requêtes
+const instance = axios.create({
+  baseURL: 'http://localhost:3000/api/',
+});
+
+console.log('trying to login');
+
+// stokage de refreshToken
+let refresheToken;
+
+// ma route login avec les identifiants de connection
+instance.post('/login', { 
+  email: 'jeanbon@gmail.com',
+  password: 'cuillere',
+}).then((response) => {
+  console.log('auth success');
+
+  // intégration du token dans le headers du client
+  instance.defaults.headers.common['Authorization'] = `Bearer ${response.data.accessToken}`;
+  refresheToken = response.data.refreshToken;
+  loadUserInfos();
+}).catch((error) => {
+  console.log(err.response.status);
+});
+
+function loadUserInfos() {
+  console.log("load User Info");
+  instance.get('/me').then((response) => {
+    console.log("response data => ", res);
+  }).catch((error) => {
+      console.log("erreur de réccupération du token", error);
+      console.log("status ", error.response.status);
+  });
+};
+
+
 ```
 
 ```js
