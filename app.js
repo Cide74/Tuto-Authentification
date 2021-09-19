@@ -11,10 +11,6 @@ app.use(express.json());
 // lecture des url pour encoder les donnée
 app.use(express.urlencoded({ extended: true}));
 
-// nos testes
-// console.log(`hello this is my API`); 
-//console.log(`secret is =>`, process.env.ACCESS_TOKEN_SECRET); 
-
 // utilisateur fictive
 const user = {
     id: 42,
@@ -26,13 +22,14 @@ const user = {
 // Fonction qui génére un token
 function generateAccessToken(user) {
   return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1800s' });
-}
+};
 
-// Fonction qui génére un token pour un temps defini de 1800S = 30mn
-//const accessToken = generateAccessToken(user);
-// notre réponse
- //console.log('accessToken =>', accessToken);
+// Fonction qui rafraichie un token pour un durée de un an
+function generateRefreshToken(user) {
+  return jwt.sign(user, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '1y' });
+};
 
+// notre route login
 app.post('/api/login', (req, res) => {
 
     // TODO: fetch le user depuis la db basé sur l'email passé en paramètre
@@ -48,15 +45,46 @@ app.post('/api/login', (req, res) => {
 
   // déplacement de la fonction dans notre route et générer un token lord de la connection client
   const accessToken = generateAccessToken(user);
+  const refreshToken = generateRefreshToken(user);
     res.send({
-      accessToken
+      accessToken,
+      refreshToken,
     });
     console.log('accessToken user =>', accessToken);
+    console.log('refreshToken user =>', refreshToken);
 
 });
 
+// notre route de rachaichisement du token
+app.post('/api/refreshToken', (req, res)=>{
+  // recuperation du token
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(' ')[1]; // 'Bearer leToken'
 
+    // si pas de token donc status 401 (non autoriser)
+  if (!token) {
+    return res.sendStatus(401);
+  }
 
+    // si token le verifier avec celui de l'utilisateur
+  jwt.verify(token, process.env.REFRESH_TOKEN_SECRET, (err, user)=> {
+
+    if (err) {
+      console.log("user token different => ", user);
+      return res.sendStatus(401);
+    }
+
+    // TODO: Check en BDD que l'user est toujours existant/autorisé à utiliser la plateforme
+    delete user.iat;
+    delete user.exp;
+    const refreshedToken = generateAccessToken(user);
+    res.send({
+      accessToken: refreshedToken,
+    });
+    
+  });
+
+});
 
 //* authentification des routes, voir si les routes avec jwt est correct.
 // notre middleware d'authetification de token
@@ -70,15 +98,10 @@ function authenticateToken (req, res, next) {
   // on coupe la chaine en 2 au niveau de l'espace et on prend la valeur à l'indice 1
   const token = authHeader && authHeader.split(' ')[1]; // 'Bearer leToken'
 
-  console.log(`req.headers =>`, req.headers)
-  console.log('authHeader :>> ', authHeader[1]);
-  console.log('token => ',token);
-
   // si pas de token donc status 401 (non autoriser)
   if (!token) {
     return res.sendStatus(401);
   }
-  console.log("pas de token => ", token);
 
   // si token le verifier avec celui de l'utilisateur
   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user)=> {
@@ -103,7 +126,5 @@ app.get ('/api/me', authenticateToken, (req, res) => {
   // puis on retourne le user
   res.send(req.user);
 });
-
-
 
 app.listen(process.env.PORT, () => console.log(`Server running on port ${process.env.PORT}!`));
